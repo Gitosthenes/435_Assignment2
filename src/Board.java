@@ -225,6 +225,13 @@ class Board {
         return ans;
     }
 
+    boolean isSpaceEmpty(int quad, int pos) {
+        int[][] quadrant = getQuadrants()[quad-1];
+        int[] posCoordinates = getPositionCoordinates(pos);
+
+        return quadrant[posCoordinates[0]][posCoordinates[1]] == 0;
+    }
+
     int[][] getFullBoard() {
         return deepCopy(fullBoard);
     }
