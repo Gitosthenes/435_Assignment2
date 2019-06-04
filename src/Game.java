@@ -4,8 +4,8 @@ import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 /* TODO:
-    - Check if piece is already in place
-    - Retry inputs if failed instead of exceptions.
+    - Write all game info to file as it goes.
+    - Have AI move parse correctly (4th element is direction L=0, R=1)
 */
 
 
@@ -15,64 +15,137 @@ public class Game {
     private static int player2;
     private static int currentPlayer;
     private static Board board;
+    private static AI opponent;
     private static int turnNum = 1;
+    private static Scanner scan;
 
     public static void main(String[] args) throws InterruptedException {
-        Scanner scan = new Scanner(System.in);
+        /*
+        //////////////////TESTING SECTION//////////////////////////
+        board = new Board();
+        System.out.println(board.isSpaceEmpty(1,5));
+        board.placePiece(1,1,5);
+        System.out.println(board.isSpaceEmpty(1,5));
+
+
+        ////////////////////////////////////////////////////////////
+        */
+        ///*
+        scan = new Scanner(System.in);
+        //Get move and color preference from user.
         System.out.print("Would you like to go first? Y/N/R (R for random): ");
         String moveChoice = scan.nextLine();
+        while (!("Y".equals(moveChoice.toUpperCase()))
+                &&!("N".equals(moveChoice.toUpperCase()))
+                &&!("R".equals(moveChoice.toUpperCase()))) {
+            System.out.print("Sorry, I didn't catch that...\nWould you like to go first? Y/N/R (R for random): ");
+            moveChoice = scan.nextLine();
+        }
         System.out.print("Would you prefer to be White or Black? W/B/R (R for random): ");
         String colorChoice = scan.nextLine();
+        while (!("W".equals(colorChoice.toUpperCase()))
+                &&!("B".equals(colorChoice.toUpperCase()))
+                &&!("R".equals(colorChoice.toUpperCase()))) {
+            System.out.print("Sorry, I didn't catch that...\nWould you prefer to be White or Black? W/B/R (R for random): ");
+            colorChoice = scan.nextLine();
+        }
         System.out.print("Setting up your game");
-
+        //Setup initial game state.
         setupGame(moveChoice, colorChoice);
-        for (int i = 0; i < 3; i++) {
-            TimeUnit.MILLISECONDS.sleep(50);
+        for (int i = 0; i < 5; i++) {
+            TimeUnit.MILLISECONDS.sleep(250);
             System.out.print(".");
-            if (i == 2) {
+            if (i == 4) {
                 System.out.print("\n");
             }
         }
 
         //GAME LOOP
+        boolean firstTurn = true;
         while (!board.isFull()) {
             System.out.println("Turn " + turnNum + ": Player " + getCurrentPlayer() + "(" + getPlayerColor(getCurrentPlayer()) + ").");
-            board.printBoard();
-
-            //Current player places piece
-            System.out.print("Place your piece where? (Quadrant/Location): ");
-            int[] move = Arrays.stream(scan.nextLine().split("/")).mapToInt(Integer::parseInt).toArray();
-            if (!isLegalMove(move[0], move[1])) {
-                throw new IllegalArgumentException("Whoops, invalid space!");
+            if (firstTurn) {
+                board.printBoard();
+                firstTurn = false;
             }
-            board.placePiece(currentPlayer, move[0], move[1]);
-            board.printBoard();
-
-            //check for winner
-            if (board.checkWinner() != 0){
-                endGame(board.checkWinner());
+            //Decide who's turn it is.
+            if (getCurrentPlayer() == 1) { //If currently player1's turn (user)
+                userTurn();
+            } else {    //else it's player2's turn (A.I.)
+                aiTurn();
             }
-
-            //Current player rotates board
-            System.out.print("Which quadrant(1-4) to rotate and which way(L/R)? (Quadrant/Direction): ");
-            String[] rotate = scan.nextLine().split("/");
-            if (!isLegalRotation(Integer.parseInt(rotate[0]), rotate[1])) {
-                throw new IllegalArgumentException("Whoops, invalid rotation!");
-            }
-            board.rotateQuadrant(rotate[1], Integer.parseInt(rotate[0]));
-            board.printBoard();
-
-            //check for winner
-            if (board.checkWinner() != 0){
-                endGame(board.checkWinner());
-            }
-
             //Move to other player's turn
             System.out.println("Changing Player.....\n\n\n");
             turnNum++;
-            changePlayer();
-            clearScreen();
+            currentPlayer *= -1;
+        }
+        endGame(2); //board is full before someone wins.
+        //*/
+    }
 
+
+    private static void userTurn() {
+        //User selects where to place piece.
+        System.out.print("Place your piece where? (Quadrant/Location): ");
+        int[] move = Arrays.stream(scan.nextLine().split("/")).mapToInt(Integer::parseInt).toArray();
+        while (!isLegalMove(move[0], move[1]) || !board.isSpaceEmpty(move[0], move[1])) {
+            System.out.print("INVALID SPACE. Place your piece where? (Quadrant/Location): ");
+            move = Arrays.stream(scan.nextLine().split("/")).mapToInt(Integer::parseInt).toArray();
+        }
+        board.placePiece(currentPlayer, move[0], move[1]);
+        board.printBoard();
+
+        //check for winner
+        if (board.checkWinner() != 0){
+            endGame(board.checkWinner());
+        }
+
+        //Current player rotates board
+        System.out.print("Which quadrant(1-4) to rotate and which way(L/R)? (Quadrant/Direction): ");
+        String[] rotate = scan.nextLine().split("/");
+        while (!isLegalRotation(Integer.parseInt(rotate[0]), rotate[1])) {
+            System.out.print("INVALID ROTATION. Which quadrant(1-4) to rotate and which way(L/R)? (Quadrant/Direction): ");
+            rotate = scan.nextLine().split("/");
+        }
+        board.rotateQuadrant(Integer.parseInt(rotate[0]), rotate[1]);
+        board.printBoard();
+
+        //check for winner
+        if (board.checkWinner() != 0){
+            endGame(board.checkWinner());
+        }
+    }
+
+    private static void aiTurn() throws InterruptedException {
+        System.out.println("Your opponent is thinking...");
+
+        //Get AI's best move and rotation
+        int[] aiMove = opponent.findBestMove(board);
+
+        //AI makes move
+        board.placePiece(player2, aiMove[0], aiMove[1]);
+        board.printBoard();
+
+        //Check for win
+        if (board.checkWinner() != 0) {
+            endGame(board.checkWinner());
+        }
+
+        //AI rotates board
+        System.out.print("Your opponent is rotating");
+        for (int i = 0; i < 3; i++) {
+            TimeUnit.MILLISECONDS.sleep(300);
+            System.out.print(".");
+            if (i == 2) {
+                System.out.print("\n");
+            }
+        }
+        board.rotateQuadrant(aiMove[2], aiMove[3]==0 ? "L" : "R");
+        board.printBoard();
+
+        //Check for win
+        if (board.checkWinner() != 0) {
+            endGame(board.checkWinner());
         }
     }
 
@@ -100,6 +173,7 @@ public class Game {
         } else {
             System.out.println("It's a Tie!");
         }
+        System.exit(0);
     }
 
     private static boolean isLegalMove(int quad, int pos) {
@@ -111,33 +185,24 @@ public class Game {
     }
 
     private static void setupGame(final String moveChoice, final String colorChoice) {
-        if ((!("Y".equals(moveChoice.toUpperCase()))
-                &&!("N".equals(moveChoice.toUpperCase()))
-                &&!("R".equals(moveChoice.toUpperCase())))
-          ||(!("W".equals(colorChoice.toUpperCase()))
-                &&!("B".equals(colorChoice.toUpperCase()))
-                &&!("R".equals(colorChoice.toUpperCase())))) {
+        int move = 0;
+        int color = 0;
 
-            throw new IllegalArgumentException("Sorry, you must have mis-keyed!");
-        } else {
-            int move = 0;
-            int color = 0;
-
-            if ("Y".equals(moveChoice.toUpperCase())) {
-                move = 1;
-            } else if ("N".equals(moveChoice.toUpperCase())) {
-                move = 2;
-            }
-            if ("W".equals(colorChoice.toUpperCase())) {
-                color = 1;
-            } else if ("B".equals(colorChoice.toUpperCase())) {
-                color = -1;
-            }
-            setupGame(move,color);
+        if ("Y".equals(moveChoice.toUpperCase())) {
+            move = 1;
+        } else if ("N".equals(moveChoice.toUpperCase())) {
+            move = 2;
         }
+        if ("W".equals(colorChoice.toUpperCase())) {
+            color = 1;
+        } else if ("B".equals(colorChoice.toUpperCase())) {
+            color = -1;
+        }
+        setupGame(move,color);
     }
 
-    private static void setupGame(int colorChoice, int moveChoice) {
+
+    private static void setupGame(int moveChoice, int colorChoice) {
         int[] list = new int[]{-1, 1};
         Random rand = new Random();
         //Set player colors (user is always player 1)
@@ -153,6 +218,8 @@ public class Game {
         }
         //Initialize game board
         board = new Board();
+        //Initialize AI opponent.
+        opponent = new AI(player2);
     }
 
     private static String getPlayerColor(int playerNum) {
@@ -173,15 +240,5 @@ public class Game {
 
     private static int getCurrentPlayer() {
         return (currentPlayer == player1) ? 1 : 2;
-    }
-
-    private static void changePlayer() {
-        currentPlayer *= -1;
-    }
-
-    //https://stackoverflow.com/questions/2979383/java-clear-the-console
-    private static void clearScreen() {
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
     }
 }

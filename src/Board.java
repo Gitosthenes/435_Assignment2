@@ -15,10 +15,10 @@ class Board {
     }
 
     Board(int[][] quad1, int[][] quad2, int[][] quad3, int[][] quad4) {
-        quadrant1 = quad1;
-        quadrant2 = quad2;
-        quadrant3 = quad3;
-        quadrant4 = quad4;
+        quadrant1 = deepCopy(quad1);
+        quadrant2 = deepCopy(quad2);
+        quadrant3 = deepCopy(quad3);
+        quadrant4 = deepCopy(quad4);
         fullBoard = new int[6][6];
         assembleFullBoard();
     }
@@ -49,7 +49,7 @@ class Board {
         assembleFullBoard();
     }
 
-    void rotateQuadrant(final String direction, final int quadrantNum) {
+    void rotateQuadrant(final int quadrantNum, final String direction) {
         if ("R".equals(direction.toUpperCase())) {
             if (quadrantNum >= 1 && quadrantNum <= 4) {
                 switch (quadrantNum) {
