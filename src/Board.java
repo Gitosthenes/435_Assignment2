@@ -3,17 +3,24 @@ import java.util.List;
 
 class Board {
 
+    /* Global Variables */
     private int[][] quadrant1;
     private int[][] quadrant2;
     private int[][] quadrant3;
     private int[][] quadrant4;
     private int[][] fullBoard;
 
+    /**
+     * Constructor for a new, blank board.
+     */
     Board() {
         fullBoard = new int[6][6];
         initializeGameBoard();
     }
 
+    /**
+     * Constructor for creating a copy of a board given its quadrants.
+     */
     Board(int[][] quad1, int[][] quad2, int[][] quad3, int[][] quad4) {
         quadrant1 = deepCopy(quad1);
         quadrant2 = deepCopy(quad2);
@@ -23,6 +30,9 @@ class Board {
         assembleFullBoard();
     }
 
+    /**
+     * Updates the board to reflect the move made by the specified player in the specified quadrant/position.
+     */
     void placePiece(int player, int quadrant, int pos) {
         int[][] changedQuadrant = new int[0][0];
         int x = getPositionCoordinates(pos)[0];
@@ -49,6 +59,9 @@ class Board {
         assembleFullBoard();
     }
 
+    /**
+     * Updates the board to reflect rotation of specified quadrant in specified direction.
+     */
     void rotateQuadrant(final int quadrantNum, final String direction) {
         if ("R".equals(direction.toUpperCase())) {
             if (quadrantNum >= 1 && quadrantNum <= 4) {
@@ -94,6 +107,9 @@ class Board {
         assembleFullBoard();
     }
 
+    /**
+     * Prints the board to the console.
+     */
     void printBoard() {
         String topBot = "+-------+-------+";
         System.out.println(topBot);
@@ -147,6 +163,9 @@ class Board {
         System.out.println(topBot);
     }
 
+    /**
+     * Checks all 28 possible win conditions for either player. Also checks for tie games if both players have a win.
+     */
     int checkWinner() {
         int winner = 0;
         List<Integer> winPossibilities = new ArrayList<>();
@@ -211,6 +230,9 @@ class Board {
         return winner;
     }
 
+    /**
+     * Returns true if the board is full; false otherwise.
+     */
     boolean isFull() {
         boolean ans = true;
 
@@ -225,6 +247,9 @@ class Board {
         return ans;
     }
 
+    /**
+     * Returns true if the board space at the given quadrant and position is empty; false otherwise.
+     */
     boolean isSpaceEmpty(int quad, int pos) {
         int[][] quadrant = getQuadrants()[quad-1];
         int[] posCoordinates = getPositionCoordinates(pos);
@@ -232,14 +257,23 @@ class Board {
         return quadrant[posCoordinates[0]][posCoordinates[1]] == 0;
     }
 
-    int[][] getFullBoard() {
+    /**
+     * Returns a 6x6 2D array of the entire board state.
+     */
+    private int[][] getFullBoard() {
         return deepCopy(fullBoard);
     }
 
+    /**
+     * Returns an array of all 4 quadrants of this board state.
+     */
     int[][][] getQuadrants() {
         return new int[][][]{deepCopy(quadrant1), deepCopy(quadrant2), deepCopy(quadrant3), deepCopy(quadrant4)};
     }
 
+    /**
+     * Returns true if all quadrants and the full board of the given board is equal to this one's; false otherwise.
+     */
     @Override
     public boolean equals(Object other) {
         if (this == other) {
@@ -276,6 +310,9 @@ class Board {
         }
     }
 
+    /**
+     * Takes a given quadrant and changes all elements to reflect a clockwise rotation.
+     */
     private int[][] rotateCW(int[][] quadrant) {
         int[][] rotated = new int[3][3];
         rotated[0][0] = quadrant[2][0];
@@ -290,6 +327,9 @@ class Board {
         return rotated;
     }
 
+    /**
+     * Takes a given quadrant and changes all elements to reflect a counter-clockwise rotation.
+     */
     private int[][] rotateCCW(int[][] quadrant) {
         int[][] rotated = new int[3][3];
         rotated[0][0] = quadrant[0][2];
@@ -304,6 +344,9 @@ class Board {
         return rotated;
     }
 
+    /**
+     * Initializes all quadrants to blank spaces and uses them to assemble the full board.
+     */
     private void initializeGameBoard() {
         quadrant1 = new int[][]{{0,0,0},{0,0,0},{0,0,0}};
         quadrant2 = new int[][]{{0,0,0},{0,0,0},{0,0,0}};
@@ -313,6 +356,9 @@ class Board {
         assembleFullBoard();
     }
 
+    /**
+     * Uses the quadrants to put together the full 6x6 board.
+     */
     private void assembleFullBoard() {
         for (int i = 0; i < fullBoard.length; i++) {
             if (i < 3) {
@@ -325,6 +371,9 @@ class Board {
         }
     }
 
+    /**
+     * Returns true if all given parameters are equal; false otherwise.
+     */
     private boolean allEqual(int x1, int x2, int x3, int x4, int x5) {
         boolean ans = true;
         int[] arr = new int[]{x1,x2,x3,x4,x5};
@@ -336,6 +385,9 @@ class Board {
         return ans;
     }
 
+    /**
+     * Takes a given position of a quadrant (1-9) and returns the 2D coordinates corresponding to that position.
+     */
     private int[] getPositionCoordinates(int pos) {
         int[] coordinates = new int[2];
         switch (pos) {
@@ -370,6 +422,9 @@ class Board {
         return coordinates;
     }
 
+    /**
+     * Takes a 2D array and creates a separate copy of it, then returns the copy.
+     */
     private int[][] deepCopy(final int[][] input) {
         int[][] copy = new int[input.length][input.length];
         for (int i = 0; i < input.length; i++) {

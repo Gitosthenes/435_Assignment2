@@ -3,14 +3,9 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
-/* TODO:
-    - Write all game info to file as it goes.
-    - Have AI move parse correctly (4th element is direction L=0, R=1)
-*/
-
-
 public class Game {
 
+    /* Global Variables */
     private static int player1;
     private static int player2;
     private static int currentPlayer;
@@ -19,18 +14,11 @@ public class Game {
     private static int turnNum = 1;
     private static Scanner scan;
 
+    /**
+     * Main method and controller for the program. Gets initial input from user,
+     * sets up game and runs game loop.
+     */
     public static void main(String[] args) throws InterruptedException {
-        /*
-        //////////////////TESTING SECTION//////////////////////////
-        board = new Board();
-        System.out.println(board.isSpaceEmpty(1,5));
-        board.placePiece(1,1,5);
-        System.out.println(board.isSpaceEmpty(1,5));
-
-
-        ////////////////////////////////////////////////////////////
-        */
-        ///*
         scan = new Scanner(System.in);
         //Get move and color preference from user.
         System.out.print("Would you like to go first? Y/N/R (R for random): ");
@@ -80,10 +68,11 @@ public class Game {
             currentPlayer *= -1;
         }
         endGame(2); //board is full before someone wins.
-        //*/
     }
 
-
+    /**
+     * Gets user input and makes move for human player.
+     */
     private static void userTurn() {
         //User selects where to place piece.
         System.out.print("Place your piece where? (Quadrant/Location): ");
@@ -116,6 +105,9 @@ public class Game {
         }
     }
 
+    /**
+     * Makes move for AI.
+     */
     private static void aiTurn() throws InterruptedException {
         System.out.println("Your opponent is thinking...");
 
@@ -149,6 +141,10 @@ public class Game {
         }
     }
 
+    /**
+     * If board state is shown to have a winner or tie, this method conveys that to the
+     * user and exits the program.
+     */
     private static void endGame(int winner) {
         String winningColor;
         switch (winner) {
@@ -176,14 +172,25 @@ public class Game {
         System.exit(0);
     }
 
+    /**
+     * Checks whether the given quadrant and position is within the board.
+     */
     private static boolean isLegalMove(int quad, int pos) {
         return (quad >= 1 && quad <= 4) && (pos >= 1 && pos <= 9);
     }
 
+    /**
+     * Checks whether the given quadrant and direction are legal within the context of
+     * Pentago rules.
+     */
     private static boolean isLegalRotation(int quad, final String dir) {
         return (quad >= 1 && quad <= 4) && ("L".equals(dir.toUpperCase()) || "R".equals(dir.toUpperCase()));
     }
 
+    /**
+     * Converts the move choice and color choice made by the user form letters to numbers
+     * to be used when setting up the game.
+     */
     private static void setupGame(final String moveChoice, final String colorChoice) {
         int move = 0;
         int color = 0;
@@ -201,7 +208,9 @@ public class Game {
         setupGame(move,color);
     }
 
-
+    /**
+     * Initializes the game board, first player, and AI.
+     */
     private static void setupGame(int moveChoice, int colorChoice) {
         int[] list = new int[]{-1, 1};
         Random rand = new Random();
@@ -222,6 +231,9 @@ public class Game {
         opponent = new AI(player2);
     }
 
+    /**
+     * Returns the color of the given player.
+     */
     private static String getPlayerColor(int playerNum) {
         int player;
         if (playerNum == 1) {
@@ -238,6 +250,9 @@ public class Game {
         }
     }
 
+    /**
+     * Returns the number of the current player (1 or 2).
+     */
     private static int getCurrentPlayer() {
         return (currentPlayer == player1) ? 1 : 2;
     }

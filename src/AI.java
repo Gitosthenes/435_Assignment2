@@ -1,15 +1,21 @@
 import java.lang.Math;
 
-public class AI {
+class AI {
 
     private int myColor;
 
-    public AI(int myColor) {
+    /**
+     * Constructor
+     */
+    AI(int myColor) {
         this.myColor = myColor;
     }
 
-    //Returns array containing Q/P to place piece (index 0 & 1 respectively) and Q/D to rotate (2 & 3 respectively)
-    public int[] findBestMove(Board board) {
+    /**
+     * Finds the best move given the current board state using the minimax algorithm.
+     * Returns array containing Quad/Pos to place piece (index 0 & 1 respectively) and Quad/Dir to rotate (2 & 3 respectively).
+     */
+    int[] findBestMove(Board board) {
         int bestVal = Integer.MIN_VALUE;
         int moveQuad = 0;
         int movePos = 0;
@@ -55,6 +61,9 @@ public class AI {
         return new int[]{moveQuad, movePos, rotateQuad, rotateDir};
     }
 
+    /**
+     * Minimax Algorithm
+     */
     private int miniMax(Board board, int currentDepth, boolean isMyTurn) {
         int bestScore;
         int scoreOfCurBoard = evaluate(board);
@@ -80,10 +89,10 @@ public class AI {
                                 Board boardCopyCopy = new Board(copyQuadrants[0], copyQuadrants[1], copyQuadrants[2], copyQuadrants[3]);
                                 //Make rotation
                                 boardCopyCopy.rotateQuadrant(quad, rot == 0 ? "L" : "R");
-                                //Recursively call minimax to find max/min value.
+                                //Recursively call mini-max to find max/min value.
                                 bestScore = isMyTurn ?
-                                        Math.max(bestScore, miniMax(boardCopyCopy, currentDepth+1, !isMyTurn)) :
-                                        Math.min(bestScore, miniMax(boardCopyCopy, currentDepth+1, !isMyTurn));
+                                        Math.max(bestScore, miniMax(boardCopyCopy, currentDepth+1, false)) :
+                                        Math.min(bestScore, miniMax(boardCopyCopy, currentDepth+1, true));
                             }
                         }
                     } else {
@@ -95,6 +104,9 @@ public class AI {
         return bestScore;
     }
 
+    /**
+     * Simple valuation function for a given board state.
+     */
    private int evaluate(final Board board) {
         int winningColor = board.checkWinner();
         if (myColor == winningColor) { //AI wins
